@@ -6,7 +6,6 @@ exports.createPost = async (req, res) => {
     const newPostData = {
       content: req.body.content,
       owner: req.user._id,
-      comments:req.body.comments
     };
 
     const post = await Post.create(newPostData);

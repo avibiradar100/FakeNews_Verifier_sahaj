@@ -18,11 +18,11 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 
-// const post = require("./routes/post");
+const post = require("./routes/post");
 const user = require("./routes/user");
 
 //Using routes
-// app.use("/api/v1", post);
+app.use("/api/v1", post);
 app.use("/api/v1", user);
 
 module.exports = app;
