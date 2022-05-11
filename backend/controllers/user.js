@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 const crypto = require("crypto");
-const { Console } = require("console");
 const {sendEmail}=require("../middlewares/sendEmail")
 
 exports.register = async (req, res) => {
@@ -73,7 +72,7 @@ exports.login = async (req, res) => {
       expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
       httpOnly: true,
     };
-    //cookie is store token and check for login
+    //cookie is store token and csheck for login
     res.status(200).cookie("token", token, options).json({
       success: true,
       user,
