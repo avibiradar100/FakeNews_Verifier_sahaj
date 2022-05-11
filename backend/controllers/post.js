@@ -1,10 +1,20 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
+const cloudinary = require("cloudinary");
 
 exports.createPost = async (req, res) => {
   try {
+
+    const myCloud = await cloudinary.v2.uploader.upload(req.body.image, {
+      folder: "posts",
+    });
+
     const newPostData = {
       content: req.body.content,
+      image: {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      },
       owner: req.user._id,
     };
 
@@ -125,6 +135,9 @@ exports.deletePost = async (req, res) => {
         message: "Unauthorized",
       });
     }
+
+    await cloudinary.v2.uploader.destroy(post.image.public_id);
+
     await post.remove();
 
     const user = await User.findById(req.user._id);

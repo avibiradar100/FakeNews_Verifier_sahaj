@@ -3,10 +3,12 @@ const Post = require("../models/Post");
 const crypto = require("crypto");
 const { Console } = require("console");
 const {sendEmail}=require("../middlewares/sendEmail")
+const cloudinary = require("cloudinary");
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password,keyWords} = req.body;
+    const { name, email, password, keyWords } = req.body;
+
     // console.log(req.body);
     let user = await User.findOne({ email });
 
@@ -16,11 +18,22 @@ exports.register = async (req, res) => {
         message: "User already exists" 
     })};
 
+     const myCloud = await cloudinary.uploader.upload(req.body.avatar, {
+        folder: "avatars",
+        width: 150,
+        crop: "scale",
+    });
+
+
     user = await User.create({
       name,
       email,
       password,
-      keyWords
+      keyWords,
+      avatar: {
+          public_id: myCloud.public_id,
+          url: myCloud.secure_url,
+      },
     });
 
     const token = await user.generateToken();
@@ -209,6 +222,17 @@ exports.updateProfile = async (req, res) => {
       user.email = email;
     }
 
+    if (avatar) {
+      await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+
+      const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+        folder: "avatars",
+      });
+
+      user.avatar.public_id = myCloud.public_id;
+      user.avatar.url = myCloud.secure_url;
+    }
+
     await user.save();
 
     res.status(200).json({
@@ -231,6 +255,9 @@ exports.deleteMyProfile = async (req, res) => {
     const userId = user._id;
     const following = user.following;
 
+    //Remove avatar data from cloudinary
+    await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+
     await user.remove();
 
     //also logout user
@@ -242,6 +269,7 @@ exports.deleteMyProfile = async (req, res) => {
     //deleting all post of user
     for (let i = 0; i < posts.length; i++) {
       const post = await Post.findById(posts[i]);
+       await cloudinary.v2.uploader.destroy(post.image.public_id);
       await post.remove();
     }
 
