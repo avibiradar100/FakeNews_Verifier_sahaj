@@ -1,8 +1,28 @@
-PORT=4000
+const jwt=require('jsonwebtoken');
+const User = require('../models/User');
 
-DB_URI='mongodb://localhost:27017/SocialMedia'
+exports.isAuthenticated = async (req,res,next)=>{
+    try {
+        
+        const {token}=req.cookies;
+        if(!token){
+            return res.status(403).json({
+                success:false,
+                message:"Please Logged in first."
+            });
+        }
+
+        const decoded=await jwt.verify(token,process.env.JWT_SECRET);
+
+        req.user=await User.findById(decoded._id);
+
+        next();
 
 
-JWT_SECRET="KUGDLKNLNXCVLKUHEWRPIUUFHSIDKMCXVBNJFHOPWOA"
-
-
+    } catch (error) {
+        res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
